@@ -1,0 +1,37 @@
+# Python-related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyi
+
+
+# Django-related
+*.sqlite3
+*.pyc
+*.pyo
+*.pyd
+*.pyi
+*.log
+*.pot
+*.mo
+*.tmp
+*.swp
+*.swo
+*.swn
+*.bak
+*.db
+*.db.sqlite3
+media/
+
+# Dependency-related
+venv/
+env/
+env.bak/
+pipenv/
+Pipfile.lock
+.venv/
+.venv.bak/
+
+# Ignore .pyc files
+*.pyc
