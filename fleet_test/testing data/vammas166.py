@@ -23,7 +23,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-06-29 19:38:29",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -36,7 +36,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-13 20:37:53",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -67,7 +67,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-06-29 19:25:26",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -86,14 +86,14 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-05 17:01:34",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-05 13:27:00",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -130,7 +130,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 18:24:57",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -161,7 +161,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-05 16:58:25",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -180,21 +180,21 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-06-29 15:23:50",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-06-29 15:13:19",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 13:37:16",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -207,7 +207,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 15:34:17",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -220,7 +220,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 18:27:39",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -251,14 +251,14 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-05 16:20:25",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 18:25:22",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -277,7 +277,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-19 20:27:15",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -290,7 +290,7 @@ reports = {
       "vehicle_name": "Vammas 166",
       "created_at (strftime)": "2023-07-05 19:03:00",
       "is_serviceable": None
-      
+
     },
     {
       "vehicle_uuid": "0591a6fe-24f4-4392-8525-03f48a16fa90",
@@ -317,9 +317,4 @@ reports = {
       "is_serviceable": False
     }
   ],
-  "dtreportsCount": 90,
-  "query_dict1": "0591a6fe-24f4-4392-8525-03f48a16fa90",
-  "query_dict2": "tester",
-  "query_dict3": None
-  
 }
