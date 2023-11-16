@@ -78,12 +78,3 @@ const results = filtered.reduce(
 );
 
 console.log('Total Hours :>> ', results.totalHours);
-
-[
-  { start_time: '2023-07-05 17:07:32', end_time: '2023-07-14 19:06:46' },
-  { start_time: '2023-05-24 17:15:16', end_time: '2023-07-18 21:18:20' },
-  { start_time: '2023-07-13 21:33:53', end_time: '2023-07-05 17:01:34' },
-  { start_time: '2023-07-17 21:46:16', end_time: '2023-07-19 19:24:17' },
-  { start_time: '2023-07-10 17:18:42', end_time: '2023-07-19 18:24:57' },
-  { start_time: '2023-07-05 19:23:12', end_time: '2023-07-19 14:55:45' },
-];

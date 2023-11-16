@@ -1,5 +1,5 @@
 all_reports = {
-  "objects": [
+    "objects": [
         {
             "hours": None,
             "kilometers": None,
