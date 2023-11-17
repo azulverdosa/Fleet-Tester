@@ -62,10 +62,10 @@ for i in range(len(date_sorted_reports)-1):
         downtime_reports.append(downtime_report)
 
 # Print the downtime reports
-print(len(downtime_reports)) 
+# print(len(downtime_reports)) 
 
-for report in downtime_reports:
-    print(report)
+# for report in downtime_reports:
+#     print(report)
 
 # ------------------ sum total_hours from downtime_reports
 # Calculate the total downtime in seconds
@@ -74,4 +74,30 @@ total_downtime_seconds = sum(report['total_hours'] * 3600 for report in downtime
 # Convert total_downtime_seconds to a timedelta object
 total_downtime = timedelta(seconds=total_downtime_seconds)
 
-print(total_downtime)
+# print(total_downtime)
+
+# ------------------ return dtreports dict
+
+dtreports_dict = {
+    'total_dtreports': len(downtime_reports),
+    'reports': downtime_reports,
+    'total_hrs': total_downtime # how to change this to "2 days, 3:21:15" format when displayed in dict
+}
+
+# ------------------ To change the 'total_hrs' value from datetime.timedelta(days=2, seconds=12075) to the format "2 days, 3:21:15", you can use the following code:
+
+total_hrs = dtreports_dict['total_hrs']
+
+# Extract the days, hours, minutes, and seconds components from total_hrs
+days = total_hrs.days
+hours, remainder = divmod(total_hrs.seconds, 3600)
+minutes, seconds = divmod(remainder, 60)
+
+# Format the components into the desired string format
+formatted_total_hrs = f"{days} days, {hours}:{minutes:02d}:{seconds:02d}"
+
+# Update the dtreports_dict with the formatted_total_hrs
+dtreports_dict['total_hrs'] = formatted_total_hrs
+
+# Print the updated dtreports_dict
+print(dtreports_dict)
