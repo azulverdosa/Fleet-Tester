@@ -23,7 +23,7 @@ date_sorted_reports = sorted(reports_by_vehicle, key=lambda x: datetime.strptime
 # for report in date_sorted_reports:
 #     print(report)
 
-print(len(date_sorted_reports))
+# print(len(date_sorted_reports))
 # # print(date_sorted_reports)
 
 # ------------------ filter reports by values for downtime report
@@ -62,6 +62,8 @@ for i in range(len(date_sorted_reports)-1):
         downtime_reports.append(downtime_report)
 
 # Print the downtime reports
+print(len(downtime_reports)) 
+
 for report in downtime_reports:
     print(report)
 
