@@ -1,5 +1,5 @@
 reports = {
-    "dtreports":[
+    "objects":[
         {
             "vehicle_uuid": "58a20a4e-f1dc-44f4-a72f-af8c79616208",
             "vehicle_name": "A4",

@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 from all_reports_all_data import all_reports
 from a1 import reports as a1_reports
 from all_dtreport_data import all_dtreports
+from left_blower import reports as left_blower_reports
 
 # ------------------ filter by vehicle 
-desired_vehicle_uuid = "0591a6fe-24f4-4392-8525-03f48a16fa90"
+desired_vehicle_uuid = "1dc9f8da-9818-446d-ba37-9cca161d22d0"
 
 reports_by_vehicle = [
     report
-    for report in all_dtreports["objects"]
+    for report in left_blower_reports["objects"]
     if report["vehicle_uuid"] == desired_vehicle_uuid
 ]
 
@@ -64,8 +65,8 @@ for i in range(len(date_sorted_reports)-1):
 # Print the downtime reports
 # print(len(downtime_reports)) 
 
-# for report in downtime_reports:
-#     print(report)
+for report in downtime_reports:
+    print(report)
 
 # ------------------ sum total_hours from downtime_reports
 # Calculate the total downtime in seconds
