@@ -3,8 +3,8 @@ import datetime
 # from a1 import reports
 # from a2 import reports
 # from a4 import reports
-from vammas166 import reports
-# from left_blower import reports
+# from vammas166 import reports
+from left_blower import reports
 
 # Step 1: Sort the data by date (created_at) in ascending order
 sorted_reports = sorted(reports["objects"], key=lambda x: datetime.datetime.strptime(x["created_at"], "%Y-%m-%d %H:%M:%S"))
@@ -64,7 +64,7 @@ for entry in reports["objects"]:
                 "ending_report": ending_report if end_time else None,
                 "datetime": end_time if end_time else str(datetime.datetime.now())
             },
-            "downtime": str(downtime),
+            # "downtime": str(downtime),
         })
 
         ignore_next_false = True  # Ignore consecutive instances of ["is_serviceable"] == False
@@ -77,11 +77,11 @@ total_minutes, total_seconds = divmod(total_remainder, 60)
 total_downtime_formatted = f"{total_days} days, {total_hours:02d}:{total_minutes:02d}:{total_seconds:02d}"
 
 # Step 8: Add total_downtime to the last downtime report
-downtime_reports.append({"total_downtime": total_downtime_formatted})
+# downtime_reports.append({"total_downtime": total_downtime_formatted})
 
 # for report in downtime_reports:
 #   print(report)
 
 print(downtime_reports)
 
-print({"downtime_report_count": len(downtime_reports)-1})
+print({"downtime_report_count": len(downtime_reports)})
