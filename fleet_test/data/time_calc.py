@@ -41,8 +41,8 @@ reports = {
             "report_uuid": "d71238fd-877c-4c2b-8d5d-9d3da1f160ae",
             "vehicle_uuid": "c3916926-e3d7-411f-8750-b518aa86ce0f",
             "vehicle_name": "A1",
-            "created_at": "2023-01-13 00:00:00",
-            "is_serviceable": None
+            "created_at": "2023-01-16 00:00:00",
+            "is_serviceable": False
         },
         # start date Jan 16
         {
@@ -101,6 +101,7 @@ reports = {
             "created_at": "2023-05-25 00:00:00",
             "is_serviceable": False
         },
+        # end date May 28
         {
             "report_uuid": "34946cc3-b051-4b95-b4f3-b6a903c6f7b3",
             "vehicle_uuid": "c3916926-e3d7-411f-8750-b518aa86ce0f",
@@ -111,87 +112,49 @@ reports = {
     ],
 }
 
-range_start_date = "2023-01-16"
-range_end_date = '2023-05-28'
+# Define the range start and end dates
+range_start_date = datetime.strptime("2023-01-16", '%Y-%m-%d')
+range_end_date = datetime.strptime("2023-05-28", '%Y-%m-%d') 
 
+# Define a function to remove reports that are not serviceable within the specified range
 def remove_none_serviceable_reports(reports):
-    start_date = datetime.strptime(range_start_date, '%Y-%m-%d') 
-    print('111 - start', start_date)
 
-    # filtered_reports = []
-
-    # for report in reports['objects']:
-    #     if report.get('is_serviceable') is not None:
-    #         print(report['created_at'])
-
-    #         filtered_reports.append(report)
-
-    # more concise:
+    # Filter the reports to include only those with a non-null 'is_serviceable' value
     filtered_reports = [report for report in reports['objects'] if report.get('is_serviceable') is not None]
 
-    # for report in filtered_reports:
-    #     print(report['created_at'])
+    # Sort the filtered reports in reverse order based on the 'created_at' date
+    filtered_reports.sort(key=lambda x: datetime.strptime(x['created_at'], '%Y-%m-%d %H:%M:%S'), reverse=True)
 
-
+    # Iterate over the filtered reports
     for report in filtered_reports:
+        # Get the report's 'created_at' date and 'is_serviceable' value
         report_date = datetime.strptime(report['created_at'], '%Y-%m-%d %H:%M:%S')
         service = report['is_serviceable']
         previous_report = None
 
-        if report_date < start_date:
-            print('134 - ', report_date, service)
+        # Check if the report's date is before the range start date
+        if report_date < range_start_date:
+            # Print the report's date and service value
+            print('Report Date:', report_date, 'Service:', service)
 
-            if report.get('is_serviceable') is True:
-                return print("No downtime before start date")
-            
-            elif report.get('is_serviceable') is False:
+            # Check if the service is True
+            if service is True:
+                # If so, return and print a message indicating there was no downtime before the range start date
+                return print("NO downtime start before range start date")
+
+            # Check if the service is False
+            elif service is False:
+                # If so, assign the current report to the previous_report variable
                 previous_report = report
-                print('140 - ', previous_report)
+                start_date = range_start_date
+                # Print the previous report's 'created_at' date
+                print('Break:', previous_report['created_at'])
+                # and assign the range start date to start_date
+                print(start_date)
+                # Print a message indicating downtime started before the range start date
+                print('Downtime started before range start date')
+                # Exit the loop
+                break
 
-    #         elif report.get('is_serviceable') is False:
-    #             previous_report = report
-    #         else:
-    #             break
-    
-    # # Iterate backwards in the data until we find a report with is_serviceable as True
-    # if previous_report is not None:
-    #     for report in reversed(reports['objects']):
-    #         if report == previous_report:
-    #             break
-    #         if report.get('is_serviceable') is True:
-    #             previous_report = report
-    #             break
-    
-        if previous_report is not None:
-            return print("143 - Downtime found before start date")
-        else:
-            return print("145 - No relevant reports before start date")
-    
-            
-
-# def find_entries_before_start(filtered_reports):
-
+# Call the function with the 'reports' data
 remove_none_serviceable_reports(reports)
-
-
-
-# def find_downtime_before_start_date(reports, start_date):
-#     start_date = datetime.strptime(start_date, '%Y-%m-%d')
-#     previous_report = None
-
-#     for report in reports['objects']:
-#         report_date = datetime.strptime(report['created_at'], '%Y-%m-%d %H:%M:%S')
-#         if report_date < start_date:
-#             if report.get('is_serviceable') is True:
-#                 return "No downtime before start date"
-#             elif report.get('is_serviceable') is False:
-#                 previous_report = report
-    
-    # if previous_report is not None:
-    #     return "Downtime found before start date"
-    # else:
-    #     return "No relevant reports before start date"
-
-# start_date = "2023-01-18"
-# result = find_downtime_before_start_date(reports, start_date)
-# print(result)
