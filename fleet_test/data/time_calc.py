@@ -124,103 +124,147 @@ reports = {
 range_start = datetime.strptime("2023-01-16", '%Y-%m-%d')
 range_end = datetime.strptime("2023-05-28", '%Y-%m-%d') 
 
-downtime_start = ''
-downtime_end = ''
 
-
-def filter_reports(reports, range_start=None, range_end=None):
-    filtered_reports = []
-
-    for report in reports["objects"]:
-        report_date = datetime.strptime(report["created_at"], "%Y-%m-%d %H:%M:%S")
-
-        if range_start and report_date < range_start:
-            continue
-        elif not range_start:
-            content = "Warning: Please enter a valid range start date"
-            return content
-
-        if range_end and report_date > range_end:
-            continue
-        elif not range_end:
-            content = "Warning: Please enter a valid range end date"
-            return content
-
-        filtered_report = {
-            'report_uuid': str(report["report_uuid"]),
-            'vehicle_uuid': str(report["vehicle_uuid"]),
-            'vehicle_name': report["vehicle_name"],
-            # 'vehicle_asset_number':report.vehicle.asset_number,
-            'created_at': report["created_at"],
-            'is_serviceable': report["is_serviceable"],
-        }
-        filtered_reports.append(filtered_report)
-        
-    # print(filtered_reports)
-
-    return filtered_reports
-
-
-def create_downtime_report(filtered_reports):
-    reports_for_downtime_calc = filtered_reports.sort(key=lambda x: x["created_at"])
-
+def find_date_range_reports(reports, range_start, range_end):
+    filtered_inspections = []
     downtime_reports = []
 
-    total_downtime = timedelta()
+    for index, entry in enumerate(reports["objects"]):
+        created_at = datetime.strptime(entry["created_at"], "%Y-%m-%d %H:%M:%S")
 
-    ignore_next_false = False
+        if range_start <= created_at <= range_end:
+            filtered_inspections.append(entry)
+            if len(filtered_inspections) == 1:
+                first_filtered_entry_index = index
 
-    for entry in reports_for_downtime_calc:
-        if ignore_next_false:
-            if entry["is_serviceable"] is True:
-                ignore_next_false = False
-            continue
+    if first_filtered_entry_index:
+        first_before_date_range = reports["objects"][first_filtered_entry_index - 1]
+        serviceable = first_before_date_range["is_serviceable"]
 
-        if entry["is_serviceable"] is False:
-            downtime_start = entry["created_at"]
-            starting_report = entry["report_uuid"]
-            downtime_end = None
+        print(serviceable)
 
-            for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
-                if sub_entry["is_serviceable"] is True or sub_entry["is_serviceable"] is None:
-                    downtime_end = sub_entry["created_at"]
-                    ending_report = sub_entry["report_uuid"]
-                    break
+        if serviceable is True or serviceable is None:
+            downtime_starts_before_range = False
+            
+        # else:
+        #     downtime_starts_before_range = True
 
-            if downtime_end is None and downtime_start is not None:
-                downtime_end = range_end
-                ending_report = None
+        # if downtime_starts_before_range is True:
+                    
 
-            if downtime_end is not None and downtime_start is not None:
-                try:
-                    calc_end = datetime.strptime(downtime_end, "%Y-%m-%d %H:%M:%S")
-                    calc_start = datetime.strptime(downtime_start, "%Y-%m-%d %H:%M:%S")
-                    total_hrs = calc_end - calc_start
 
-                    total_downtime += total_hrs
+        #     print(reports["objects"][first_filtered_entry_index - 1])   
+        # print("previous serviceable:", first_before_date_range["is_serviceable"])
 
-                except ValueError:
-                    content = "Error: Failed to convert date/time string"
-                    return content
 
-            downtime_reports.append({
-                "start": {
-                    "starting_report": starting_report,
-                    "datetime": downtime_start,
-                    "downtime_starts_outside_range": None
-                },
-                "end": {
-                    "ending_report": ending_report if downtime_end else None,
-                    "datetime": downtime_end if downtime_end else range_end,
-                    # "downtime_ends_outside_range": None
+    # print("Filtered Inspections:")
+    # for entry in filtered_inspections:
+    #     print(entry)
 
-                },
-                "downtime": str(round(total_hrs.total_seconds() / 3600, 2)),
-            })
+    # print("Index of the first entry in filtered_inspections:", first_filtered_entry_index)
 
-            ignore_next_false = True
+
+find_date_range_reports(reports, range_start, range_end)
+
+# downtime_start = ''
+# downtime_end = ''
+
+
+# def filter_reports(reports, range_start = None, range_end = None):
+#     filtered_reports = []
+#     first_inspection_found = False
+
+#     for report in reports["objects"]:
+#         report_date = datetime.strptime(report["created_at"], "%Y-%m-%d %H:%M:%S")
+
+#         if range_start and report_date < range_start:
+#             continue
+#         elif not range_start:
+#             first_inspection_found = True
+#             first_
+#             content = "Warning: Please enter a valid range start date"
+#             return content
+
+#         if range_end and report_date > range_end:
+#             continue
+#         elif not range_end:
+#             content = "Warning: Please enter a valid range end date"
+#             return content
+
+#         filtered_report = {
+#             'report_uuid': str(report["report_uuid"]),
+#             'vehicle_uuid': str(report["vehicle_uuid"]),
+#             'vehicle_name': report["vehicle_name"],
+#             'created_at': report["created_at"],
+#             'is_serviceable': report["is_serviceable"],
+#         }
+#         filtered_reports.append(filtered_report)
+        
+#     print(filtered_reports)
+
+#     return filtered_reports
+
+
+# def create_downtime_report(filtered_reports):
+#     reports_for_downtime_calc = filtered_reports.sort(key=lambda x: x["created_at"])
+
+#     downtime_reports = []
+
+#     total_downtime = timedelta()
+
+#     ignore_next_false = False
+
+#     for entry in reports_for_downtime_calc:
+#         if ignore_next_false:
+#             if entry["is_serviceable"] is True:
+#                 ignore_next_false = False
+#             continue
+
+#         if entry["is_serviceable"] is False:
+#             downtime_start = entry["created_at"]
+#             starting_report = entry["report_uuid"]
+#             downtime_end = None
+
+#             for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
+#                 if sub_entry["is_serviceable"] is True or sub_entry["is_serviceable"] is None:
+#                     downtime_end = sub_entry["created_at"]
+#                     ending_report = sub_entry["report_uuid"]
+#                     break
+
+#             if downtime_end is None and downtime_start is not None:
+#                 downtime_end = range_end
+#                 ending_report = None
+
+#             if downtime_end is not None and downtime_start is not None:
+#                 try:
+#                     calc_end = datetime.strptime(downtime_end, "%Y-%m-%d %H:%M:%S")
+#                     calc_start = datetime.strptime(downtime_start, "%Y-%m-%d %H:%M:%S")
+#                     total_hrs = calc_end - calc_start
+
+#                     total_downtime += total_hrs
+
+#                 except ValueError:
+#                     content = "Error: Failed to convert date/time string"
+#                     return content
+
+#             downtime_reports.append({
+#                 "start": {
+#                     "starting_report": starting_report,
+#                     "datetime": downtime_start,
+#                     "downtime_starts_outside_range": None
+#                 },
+#                 "end": {
+#                     "ending_report": ending_report if downtime_end else None,
+#                     "datetime": downtime_end if downtime_end else range_end,
+#                     "downtime_ends_outside_range": None
+
+#                 },
+#                 "downtime": str(round(total_hrs.total_seconds() / 3600, 2)),
+#             })
+
+#             ignore_next_false = True
     
-    print(downtime_reports)
+#     print(downtime_reports)
 
 
 def find_downtime_dates(reports, range_start, range_end):
@@ -303,5 +347,5 @@ def find_downtime_dates(reports, range_start, range_end):
                 break
 
 
-filter_reports(reports, range_start, range_end)
-find_downtime_dates(reports, range_start, range_end)
+# filter_reports(reports, range_start, range_end)
+# find_downtime_dates(reports, range_start, range_end)

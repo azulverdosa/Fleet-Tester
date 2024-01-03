@@ -1,25 +1,4 @@
-objects = [
-  {
-    report_uuid: 'a58eb3d9-e0da-4276-be74-941bd1fcdaad',
-    vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
-    vehicle_name: 'A1',
-    created_at: '2023-01-03 00:00:00',
-    is_serviceable: False,
-  },
-  {
-    report_uuid: 'a58eb3d9-e0da-4276-be74-941bd1fcdaad',
-    vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
-    vehicle_name: 'A1',
-    created_at: '2023-01-05 00:00:00',
-    is_serviceable: False,
-  },
-  {
-    report_uuid: 'd71238fd-877c-4c2b-8d5d-9d3da1f160ae',
-    vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
-    vehicle_name: 'A1',
-    created_at: '2023-01-10 00:00:00',
-    is_serviceable: False,
-  },
+reports = [
   {
     report_uuid: 'f93f2f4f-8fff-4c5a-ad22-d9a330e4f8c9',
     vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
@@ -31,7 +10,7 @@ objects = [
     report_uuid: 'c6215a43-3fec-42b9-824c-f9c397571532',
     vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
     vehicle_name: 'A1',
-    created_at: '2023-03-07 00:00:00',
+    created_at: '2023-03-05 00:00:00',
     is_serviceable: True,
   },
   {
@@ -75,12 +54,5 @@ objects = [
     vehicle_name: 'A1',
     created_at: '2023-05-25 00:00:00',
     is_serviceable: False,
-  },
-  {
-    report_uuid: '34946cc3-b051-4b95-b4f3-b6a903c6f7b3',
-    vehicle_uuid: 'c3916926-e3d7-411f-8750-b518aa86ce0f',
-    vehicle_name: 'A1',
-    created_at: '2023-06-18 00:00:00',
-    is_serviceable: True,
   },
 ];
