@@ -121,249 +121,83 @@ reports = {
 }
 
 
-
 range_start = datetime.strptime("2023-01-16", '%Y-%m-%d')
 range_end = datetime.strptime("2023-05-28", '%Y-%m-%d') 
 
 
-def filter_reports(reports, range_start, range_end):
+def filter_reports_for_date_range(reports, range_start, range_end):
     reports_in_range = []
     filtered_reports = []
+
+    print('1', filtered_reports)
 
     for index, report in enumerate(reports["objects"]):
         report_date = datetime.strptime(report["created_at"], "%Y-%m-%d %H:%M:%S")
 
         if range_start <= report_date <= range_end:
             reports_in_range.append(report)
+
             if len(reports_in_range) == 1:
-                first_filtered_entry_index = index 
-                last_filtered_entry = reports_in_range[-1]
+                first_filtered_entry_index = index # rename to indexForFirstFiltered or whatever
 
-    print("last", last_filtered_entry)
-    print("-1",reports_in_range[-1])
+    last_report_in_range = reports_in_range[-1]
 
-    if first_filtered_entry_index:
-        report_before_date_range = reports["objects"][first_filtered_entry_index - 1]
-        is_serviceable = report_before_date_range["is_serviceable"]
-
-        # print("report_before_date_range",report_before_date_range)
-        # print("service:", is_serviceable)
-
-        if is_serviceable is True or is_serviceable is None:
-            downtime_starts_before_range = False
-            # print("downtime_starts_before_range:", downtime_starts_before_range)
-
-        else:
-            downtime_starts_before_range = True
-            # print("downtime_starts_before_range:", downtime_starts_before_range)
-
-    else:
-        print("no inspections prior to date range")
-
-    if downtime_starts_before_range:
-        first_for_calc = [
+    print('2', reports_in_range)    
+    
+    if last_report_in_range["is_serviceable"] is False:
+        last_report_for_calc = [
             {
-            "report_uuid": "downtime starts before range",
-            "vehicle_uuid": report_before_date_range["vehicle_uuid"],
-            "vehicle_name": report_before_date_range["vehicle_name"],
-            "created_at": range_start,
-            "is_serviceable": is_serviceable
+            "report_uuid": "downtime ends after range",
+            "vehicle_uuid": last_report_in_range["vehicle_uuid"],
+            "vehicle_name": last_report_in_range["vehicle_name"],
+            "created_at": range_end, #.strftime("%Y-%m-%d %H:%M:%S"),
+            "is_serviceable": True
             }
         ]
 
-        filtered_reports = first_for_calc + reports_in_range
+        filtered_reports = reports_in_range.append(last_report_for_calc)
 
     else:
         filtered_reports = reports_in_range
 
+    print('3', filtered_reports)
 
-        # print("first:", first_for_calc)
+    if first_filtered_entry_index: # ugh names are hard
+        report_before_date_range = reports["objects"][first_filtered_entry_index - 1]
+        is_serviceable = report_before_date_range["is_serviceable"] # precision of variable name is insuficient, "what" is serviceable?
+        # was serviceable before range
 
-        # print("filtered:", filtered_inspections)
+        if is_serviceable is True or is_serviceable is None:
+            downtime_starts_before_range = False
+
+        else:
+            downtime_starts_before_range = True
+
+    else: # this check should happen right after for loop
+        print("no inspections prior to date range")
+
+    if downtime_starts_before_range:
+        first_report_for_calc = [
+            {
+            "report_uuid": "downtime starts before range",
+            "vehicle_uuid": report_before_date_range["vehicle_uuid"],
+            "vehicle_name": report_before_date_range["vehicle_name"],
+            "created_at": range_end, #.strftime("%Y-%m-%d %H:%M:%S"),
+            "is_serviceable": is_serviceable
+            }
+        ]
+
+        filtered_reports = first_report_for_calc + reports_in_range
+
+        # return filtered_reports
+
+    else:
+        filtered_reports = reports_in_range
+
+    print('4', filtered_reports)
+
+    return filtered_reports
+
 
 
 filter_reports(reports, range_start, range_end)
-
-# downtime_start = ''
-# downtime_end = ''
-
-
-# def filter_reports(reports, range_start = None, range_end = None):
-#     filtered_reports = []
-#     first_inspection_found = False
-
-#     for report in reports["objects"]:
-#         report_date = datetime.strptime(report["created_at"], "%Y-%m-%d %H:%M:%S")
-
-#         if range_start and report_date < range_start:
-#             continue
-#         elif not range_start:
-#             first_inspection_found = True
-#             first_
-#             content = "Warning: Please enter a valid range start date"
-#             return content
-
-#         if range_end and report_date > range_end:
-#             continue
-#         elif not range_end:
-#             content = "Warning: Please enter a valid range end date"
-#             return content
-
-#         filtered_report = {
-#             'report_uuid': str(report["report_uuid"]),
-#             'vehicle_uuid': str(report["vehicle_uuid"]),
-#             'vehicle_name': report["vehicle_name"],
-#             'created_at': report["created_at"],
-#             'is_serviceable': report["is_serviceable"],
-#         }
-#         filtered_reports.append(filtered_report)
-        
-#     print(filtered_reports)
-
-#     return filtered_reports
-
-
-# def create_downtime_report(filtered_reports):
-#     reports_for_downtime_calc = filtered_reports.sort(key=lambda x: x["created_at"])
-
-#     downtime_reports = []
-
-#     total_downtime = timedelta()
-
-#     ignore_next_false = False
-
-#     for entry in reports_for_downtime_calc:
-#         if ignore_next_false:
-#             if entry["is_serviceable"] is True:
-#                 ignore_next_false = False
-#             continue
-
-#         if entry["is_serviceable"] is False:
-#             downtime_start = entry["created_at"]
-#             starting_report = entry["report_uuid"]
-#             downtime_end = None
-
-#             for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
-#                 if sub_entry["is_serviceable"] is True or sub_entry["is_serviceable"] is None:
-#                     downtime_end = sub_entry["created_at"]
-#                     ending_report = sub_entry["report_uuid"]
-#                     break
-
-#             if downtime_end is None and downtime_start is not None:
-#                 downtime_end = range_end
-#                 ending_report = None
-
-#             if downtime_end is not None and downtime_start is not None:
-#                 try:
-#                     calc_end = datetime.strptime(downtime_end, "%Y-%m-%d %H:%M:%S")
-#                     calc_start = datetime.strptime(downtime_start, "%Y-%m-%d %H:%M:%S")
-#                     total_hrs = calc_end - calc_start
-
-#                     total_downtime += total_hrs
-
-#                 except ValueError:
-#                     content = "Error: Failed to convert date/time string"
-#                     return content
-
-#             downtime_reports.append({
-#                 "start": {
-#                     "starting_report": starting_report,
-#                     "datetime": downtime_start,
-#                     "downtime_starts_outside_range": None
-#                 },
-#                 "end": {
-#                     "ending_report": ending_report if downtime_end else None,
-#                     "datetime": downtime_end if downtime_end else range_end,
-#                     "downtime_ends_outside_range": None
-
-#                 },
-#                 "downtime": str(round(total_hrs.total_seconds() / 3600, 2)),
-#             })
-
-#             ignore_next_false = True
-    
-#     print(downtime_reports)
-
-
-# def find_downtime_dates(reports, range_start, range_end):
-#     global downtime_start
-#     global downtime_end
-#     sorted_reports_descending = sorted(reports["objects"], key=lambda x: datetime.strptime(x["created_at"], "%Y-%m-%d %H:%M:%S"), reverse=True)
-#     last_inspection_within_range = None
-
-#     for report in sorted_reports_descending:
-#         instance_of_report ={
-#             'report_uuid': report['report_uuid'],
-#             'vehicle_uuid': report['vehicle_uuid'],
-#             'vehicle_name': report['vehicle_name'],
-#             'created_at': report['created_at'],
-#             'is_serviceable': report['is_serviceable']
-#         }
-#         report_date = datetime.strptime(report['created_at'], '%Y-%m-%d %H:%M:%S')
-#         serviceable = report['is_serviceable']
-#         previous_report = None
-
-#         if report_date < range_start:
-#             if serviceable is True or serviceable is None:
-#                 downtime_started_within_range = True
-#                 first_report = instance_of_report
-
-#                 print("Downtime started within date range: ", first_report['created_at'])
-#                 print('first', serviceable)
-                
-#                 break
-
-#             else:
-#                 downtime_started_outside_range = True
-#                 first_report = {
-#                     'report_uuid': report['report_uuid'],
-#                     'vehicle_uuid': report['vehicle_uuid'],
-#                     'vehicle_name': report['vehicle_name'],
-#                     'created_at': range_start,
-#                     'is_serviceable': report['is_serviceable']
-#                 }
-
-#                 print('first', serviceable)
-#                 print("Downtime started outside of date range:", first_report['created_at'])
-#                 break
-
-#         # if report_date < range_start and (serviceable is True or serviceable is None):
-#         #     status = "within" if serviceable is True else "outside of"
-#         #     print(f"Downtime started {status} date range: {report_date} Service: {serviceable}")
-#         #     previous_report = report
-
-#         #     previous_report_uuid = report["report_uuid"]
-#         #     previous_report_date = previous_report['created_at']
-
-#         #     downtime_start = range_start
-#         #     break
-
-#         if range_start <= report_date <= range_end:
-#             last_inspection_within_range = report
-#             print(range_end)
-#             print("serviceable", last_inspection_within_range['is_serviceable'])
-
-#             if last_inspection_within_range['is_serviceable'] is False:
-#                 last_report = {
-#                     'report_uuid': report['report_uuid'],
-#                     'vehicle_uuid': report['vehicle_uuid'],
-#                     'vehicle_name': report['vehicle_name'],
-#                     'created_at': range_end,
-#                     'is_serviceable': report['is_serviceable']
-#                 }
-
-#                 print('last_inspection_within_range:', last_report['is_serviceable'])
-#                 print("false", last_report)
-#                 break
-
-#             else:
-#                 last_report = instance_of_report
-
-#                 print("true or null", last_report)
-#                 print("Downtime End:", last_report["created_at"])
-#                 print("range end", range_end)
-#                 break
-
-
-# filter_reports(reports, range_start, range_end)
-# find_downtime_dates(reports, range_start, range_end)
