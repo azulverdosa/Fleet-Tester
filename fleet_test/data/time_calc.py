@@ -200,4 +200,4 @@ def filter_reports_for_date_range(reports, range_start, range_end):
 
 
 
-filter_reports(reports, range_start, range_end)
+filter_reports_for_date_range(reports, range_start, range_end)
