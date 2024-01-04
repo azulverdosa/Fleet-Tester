@@ -1,173 +1,172 @@
-# ORIGINAL CODE:
-target_vehicle_uuid = query_dict.get('vehicleUuid')
-downtime_reports = []
-total_downtime = datetime.timedelta() # Initialize total_downtime as timedelta
+def filter_reports(reports, range_start = None, range_end = None):
+    reports_in_range = []
+    filtered_reports = []
 
-ignore_next_false = False
+    for report in reports:
+        report_date = str(report.created_at.date())
+
+        if range_start and report_date < range_start:
+            continue
+        elif not range_start:
+            content = "Warning: Please enter a valid range start date"
+            return content
+
+        if range_end and report_date > range_end:
+            continue
+        elif not range_end:
+            content = "Warning: Please enter a valid range end date"
+            return content
+
+        filtered_report = {
+            'report_uuid': str(report.uuid),
+            'vehicle_uuid': str(report.vehicle.uuid),
+            'vehicle_name': report.vehicle.identifier,
+            'vehicle_asset_number':report.vehicle.asset_number,
+            'created_at': report.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            'is_serviceable': report.is_serviceable,
+        }
+        filtered_reports.append(filtered_report)
+
+    return filtered_reports
+
+
+def _downtime_report_render_get(request, vehicle_uuid):
+    if not is_authorized(request, None, [['report.r', 'report.w']]):
+        return HttpResponseForbidden('not authorized')
+
+    context = Context()
+    context._airport_id = str(request.airport.id)
+
+    vehicle = None
+    try:
+        vehicle_uuid = uuid.UUID(vehicle_uuid)
+        vehicle = models.Vehicle.objects.select_related('subarea').get(
+            uuid=vehicle_uuid, airport_id=request.airport.id)
+    except models.Vehicle.DoesNotExist:
+        return HttpResponseNotFound('vehicle not found')
+
+    output_type = request.GET.get('outputtype', None)
+    if output_type is None:
+        return HttpResponseBadRequest('\'outputyype\' missing')
+
+    range_start = request.GET.get('startdate')
+    if range_start is None:
+        return HttpResponseBadRequest('\'startdate\' missing')
+    
+    range_start += ' 00:00:00'
+
+    range_end = request.GET.get('enddate')
+    if range_end is None:
+        return HttpResponseBadRequest('\'enddate\' missing')
+    else:
+        current_time_UTC = datetime.now(timezone.utc).strftime("%H:%M:%S")
+        range_end += ' ' + current_time_UTC 
+
+    reports_for_downtime_calc = []
+    vehicle_name = ''
+    vehicle_asset_number = ''
+
+    if vehicle_uuid:
+        vehicle = models.Vehicle.objects.get(uuid=vehicle_uuid)
+
+        vehicle_name = vehicle.identifier
+        vehicle_asset_number = vehicle.asset_number
+
+        vehicle_reports = models.Report.objects.filter(vehicle_id=vehicle_uuid)
+        
+        for report in vehicle_reports:
+            filtered_reports = filter_reports([report], range_start, range_end)
+            if filtered_reports:
+                reports_for_downtime_calc.extend(filtered_reports)
+
+            else:
+                content = "Warning: No reports for that vehicle UUID"
+                # return HttpResponse('No reports for that vehicle UUID', status=204)
+
+    else:
+        content = "Warning: No vehicle UUID provided"
+        # return HttpResponseBadRequest('No vehicle UUID provided')
+
+    reports_for_downtime_calc.sort(key=lambda x: x["created_at"])
+
+    downtime_reports = []
+
+    total_downtime = timedelta()
+
+    ignore_next_false = False
 
     for entry in reports_for_downtime_calc:
-
-        # Step 3: Ignore consecutive "is_servicable == False" -
-        # added a variable ignore_next_false to keep track of whether consecutive instances of ["is_serviceable"] == False 
-        # should be ignored. If ignore_next_false is set to True, it skips the iteration until it finds the first occurrence 
-        # of ["is_serviceable"] == True. Once it finds the first ["is_serviceable"] == True, it resets ignore_next_false 
-        # to False, allowing the code to process subsequent instances normally.
         if ignore_next_false:
-            if entry["is_serviceable"] == True:
+            if entry["is_serviceable"] is True or entry["is_serviceable"] is None:
                 ignore_next_false = False
             continue
 
-        if entry["is_serviceable"] == False:
-            # Step 4: Record the start time
-            start_time = entry["created_at"]
+        if entry["is_serviceable"] is False:
+            downtime_start = entry["created_at"]
             starting_report = entry["report_uuid"]
+            downtime_end = None
 
-            # Step 5: Search for the first occurrence of "is_serviceable": True
-            end_time = None
             for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
-                if sub_entry["is_serviceable"] == True:
-                    end_time = sub_entry["created_at"]
+                if sub_entry["is_serviceable"] is True or sub_entry["is_serviceable"] is None:
+                    downtime_end = sub_entry["created_at"]
                     ending_report = sub_entry["report_uuid"]
                     break
 
-            if end_time is not None and start_time is not None:
-                end = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
-                start = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
-                total_hrs = end - start
+            if downtime_end is None and downtime_start is not None:
+                downtime_end = range_end
+                ending_report = None
 
-                days = total_hrs.days
-                hours, remainder = divmod(total_hrs.seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
+            if downtime_end is not None and downtime_start is not None:
+                try:
+                    calc_end = datetime.strptime(downtime_end, "%Y-%m-%d %H:%M:%S")
+                    calc_start = datetime.strptime(downtime_start, "%Y-%m-%d %H:%M:%S")
+                    total_hrs = calc_end - calc_start
 
-                downtime = f"{days} days, {hours:02d}:{minutes:02d}:{seconds:02d}"
+                    total_downtime += total_hrs
 
-                # Accumulate downtime duration to the total_downtime
-                total_downtime += total_hrs
+                except ValueError:
+                    content = "Error: Failed to convert date/time string"
+                    return content
 
-            # Step 6: Append the downtime report to the list
             downtime_reports.append({
                 "start": {
                     "starting_report": starting_report,
-                    "datetime": start_time
+                    "datetime": downtime_start,
+                    "downtime_starts_outside_range": None
                 },
                 "end": {
-                    "ending_report": ending_report if end_time else None,
-                    "datetime": end_time if end_time else str(datetime.datetime.now())
+                    "ending_report": ending_report if downtime_end else None,
+                    "datetime": downtime_end if downtime_end else range_end,
+
                 },
-                "downtime": str(downtime),
+                "downtime": str(round(total_hrs.total_seconds() / 3600, 2)),
             })
 
-    # Step 8: Add desired values to time to the ret_obj
-    ret_obj['dtreports'] = downtime_reports
+            ignore_next_false = True
 
-    ret_obj['total time down'] = str(total_downtime)
+    vehicle_downtime_report = []
 
-    ret_obj['downtime_reports_count'] = len(downtime_reports)
-    # downtime_reports.count()not work because downtime_reports does not have a .count() method.
-
-    ret_obj['query_dict'] = query_dict.get('vehicleUuid')
-
-    content, content_type = searchqueries.serialize_content(ret_obj)
-    return HttpResponse(content, content_type)
-
-
-# POE STEP BY STEP COMMENTS 
-# Step 1: Retrieve Reports
-target_vehicle_uuid = query_dict.get('vehicleUuid')
-downtime_reports = []
-
-def filter_reports(reports):
-    filtered_reports = {
-        'report_uuid': str(report.uuid),
-        'vehicle_uuid': str(report.vehicle.uuid),
-        'vehicle_name': report.vehicle.identifier,
-        'created_at': report.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        'is_serviceable': report.is_serviceable
-    }
-    return filtered_reports
-
-context._airport_id = request.airport.id
-
-ret_obj = {}
-reports_for_downtime_calc = []
-
-# Check if return_objects is True and target_vehicle_uuid is provided
-if return_objects and target_vehicle_uuid:
-    # Retrieve all reports for the specified vehicle
-    all_reports = models.Report.objects.filter(vehicle_id=target_vehicle_uuid)
-    # Iterate over the reports based on the specified sorting and pagination parameters
-    for report in all_reports.order_by(*sort)[skip:skip + count]:
-        # Step 2: Filter the report details and add them to the list
-        filtered_reports = filter_reports(all_reports)
-        reports_for_downtime_calc.append(filtered_reports)
-
-    # Add the filtered reports to the return object
-    ret_obj['ONE_vehicle_reports_for_downtime_calc'] = reports_for_downtime_calc
-
-# Check if return_objects is True and target_vehicle_uuid is not provided
-elif return_objects and not target_vehicle_uuid:
-    # Retrieve all reports based on the search criteria
-    all_reports = models.Report.objects.filter(*search)
-    # Iterate over the reports based on the specified sorting and pagination parameters
-    for report in all_reports.order_by(*sort)[skip:skip + count]:
-        # Step 2: Filter the report details and add them to the list
-        filtered_reports = filter_reports(all_reports)
-        reports_for_downtime_calc.append(filtered_reports)
-
-    # Add the filtered reports to the return object
-    ret_obj['ALL_vehicles_reports_for_downtime_calc'] = reports_for_downtime_calc
-
-# Sort the reports based on the 'created_at' field
-reports_for_downtime_calc.sort(key=lambda x: x["created_at"])
-
-downtime_reports = []
-total_downtime = datetime.timedelta()
-
-# Iterate over the filtered reports to calculate downtime
-for entry in reports_for_downtime_calc:
-    if entry["is_serviceable"] == False:
-        # Step 3: Record the start time
-        start_time = entry["created_at"]
-        starting_report = entry["report_uuid"]
-
-        # Step 4: Search for the first occurrence of "is_serviceable": True
-        end_time = None
-        for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
-            if sub_entry["is_serviceable"] == True:
-                end_time = sub_entry["created_at"]
-                ending_report = sub_entry["report_uuid"]
-                break
-
-        # Calculate the downtime duration if start and end times are available
-        if end_time is not None and start_time is not None:
-            end = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
-            start = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
-            total_hrs = end - start
-
-            days = total_hrs.days
-            hours, remainder = divmod(total_hrs.seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            downtime = f"{days} days, {hours:02d}:{minutes:02d}:{seconds:02d}"
-
-            # Accumulate downtime duration to the total_downtime
-            total_downtime += total_hrs
-
-        # Step 5: Append the downtime report to the list
-        downtime_reports.append({
-            "start": {
-                "starting_report": starting_report,
-                "datetime": start_time
-            },
-            "end": {
-                "ending_report": ending_report if end_time else None,
-                "datetime": end_time if end_time else str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            },
-            "downtime": str(downtime),
+    if downtime_reports:
+        vehicle_downtime_report.append({
+            'airport_id':context._airport_id,
+            'vehicle_name': vehicle_name,
+            'vehicle_asset_number': vehicle_asset_number,
+            'downtime_reports': downtime_reports,
+            'total_downtime': round(total_downtime.total_seconds() / 3600, 2)
         })
+    else:
+        content = "Warning: no reports available"
+        # return HttpResponse('There is no downtime to report in that timeframe')
 
-# Add the downtime reports and related information to the return object
-ret_obj['dtreports'] = downtime_reports
-ret_obj['total time down'] = str(total_downtime)
-ret_obj['all_reports_count'] = len(downtime_reports)
-ret_obj['query_dict'] = query_dict.get('vehicleUuid')
+    content = None
+    content_type = None
+    if output_type == 'csv':
+        content = reportrender.csv(vehicle_downtime_report)
+        content_type = 'text/csv'
+    elif output_type == 'xlsx':
+        content = reportrender.xlsx(vehicle_downtime_report)
+        content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    else:
+        return HttpResponseBadRequest('\'outputtype\' not recognized')
+
+    return HttpResponse(content, content_type)

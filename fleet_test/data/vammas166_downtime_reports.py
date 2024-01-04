@@ -1,5 +1,5 @@
 downtimeReports = [
-      {
+        {
             "start": {
                 "starting_report": "7978bc80-d585-41fb-b40b-26dbb936f295",
                 "datetime": "2019-05-24 20:40:40"
