@@ -126,7 +126,7 @@ reports = [
 
 
 range_start = "2023-08-01"
-range_end = "2023-08-02"
+range_end = "2023-09-30"
 
 
 def filter_reports_in_range(reports, range_start, range_end):
@@ -173,7 +173,7 @@ def filter_reports_in_range(reports, range_start, range_end):
             print("no reports BUT downtime starts before date range and ends after date range - DT is whole date range")
 
             new_downtime_start_report = {
-                "report_uuid": "downtime starts before range - downtime is entire date range",
+                "report_uuid": "DOWNTIME STARTS BEFORE RANGE - downtime is entire date range",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_start_converted,
@@ -181,7 +181,7 @@ def filter_reports_in_range(reports, range_start, range_end):
                 }
             
             new_downtime_end_report = {
-                "report_uuid": "downtime ends after range - downtime is entire date range",
+                "report_uuid": "DOWNTIME ENDS AFTER RANGE - downtime is entire date range",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_end_converted,
@@ -201,7 +201,7 @@ def filter_reports_in_range(reports, range_start, range_end):
             print("downtime starts before range & single report is DT END")
 
             new_downtime_start_report = {
-                "report_uuid": "downtime starts before range",
+                "report_uuid": "DOWNTIME STARTS BEFORE RANGE",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_start_converted,
@@ -219,20 +219,20 @@ def filter_reports_in_range(reports, range_start, range_end):
             print("single report is DT START & downtime ends after range")
 
             new_downtime_end_report = {
-                "report_uuid": "downtime ends after range",
+                "report_uuid": "DOWNTIME ENDS AFTER RANGE",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_end_converted,
                 "is_serviceable": True
                 }
             
-            filtered_reports_for_calc = reports_in_range.append(new_downtime_end_report)
+            filtered_reports_for_calc = reports_in_range + [new_downtime_end_report]
 
-        if serviceable_status_before_date_range is False and serviceable_status_for_single_report is False:
+        elif serviceable_status_before_date_range is False and serviceable_status_for_single_report is False:
             print("downtime starts before range, ends after range & single report is MIDDLE of downtime")
 
             new_downtime_start_report = {
-                "report_uuid": "downtime starts before range",
+                "report_uuid": "DOWNTIME STARTS BEFORE RANGE - downtime is entire date range",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_start_converted,
@@ -240,20 +240,19 @@ def filter_reports_in_range(reports, range_start, range_end):
                 }
 
             new_downtime_end_report = {
-                "report_uuid": "downtime ends after range",
+                "report_uuid": "DOWNTIME ENDS AFTER RANGE - downtime is entire date range",
                 "vehicle_uuid": single_report_in_range["vehicle_uuid"],
                 "vehicle_name": single_report_in_range["vehicle_name"],
                 "created_at": range_end_converted,
                 "is_serviceable": True
                 }
             
-            filtered_reports_for_calc = new_downtime_start_report + reports_in_range.append(new_downtime_end_report)
+            filtered_reports_for_calc = [new_downtime_start_report] + reports_in_range + [new_downtime_end_report]
 
 
     if len(reports_in_range) > 1:
-        print(">1 reports_in_range", reports_in_range)
-        print(len(reports_in_range))
-        print("previous_report_before_range_start", previous_report_before_range_start)
+        print(">1 reports_in_range") #, reports_in_range)
+        print("before", len(reports_in_range))
         first_report_in_range = reports_in_range[0]
         last_report_in_range = reports_in_range[-1]
         serviceable_status_for_first_report_in_range = first_report_in_range["is_serviceable"]
@@ -283,19 +282,21 @@ def filter_reports_in_range(reports, range_start, range_end):
         if downtime_stars_within_date_range_and_ends_after_date_range:
             print("downtime_stars_within_date_range_and_ends_after_date_range", downtime_stars_within_date_range_and_ends_after_date_range)
             new_downtime_end_report = {
-                "report_uuid": "downtime ends after range",
-                "vehicle_uuid": "No report available",
-                "vehicle_name": "No report available",
+                "report_uuid": "DOWNTIME ENDS AFTER RANGE",
+                "vehicle_uuid": first_report_in_range["vehicle_uuid"],
+                "vehicle_name": first_report_in_range["vehicle_name"],
                 "created_at": range_end_converted,
                 "is_serviceable": True
             }
 
-            filtered_reports_for_calc = reports_in_range.append(new_downtime_end_report)
+            filtered_reports_for_calc = reports_in_range + [new_downtime_end_report]
+
+            print("after", len(filtered_reports_for_calc))
 
         elif downtime_starts_before_date_range_and_ends_after_date_range:
             print("downtime_starts_before_date_range_and_ends_after_date_range", downtime_starts_before_date_range_and_ends_after_date_range)  
             new_downtime_start_report = {
-                "report_uuid": "downtime starts before range - downtime is entire date range",
+                "report_uuid": "DOWNTIME STARTS BEFORE RANGE - downtime is entire date range",
                 "vehicle_uuid": first_report_in_range["vehicle_uuid"],
                 "vehicle_name": first_report_in_range["vehicle_name"],
                 "created_at": range_start_converted,
@@ -303,19 +304,19 @@ def filter_reports_in_range(reports, range_start, range_end):
             }
 
             new_downtime_end_report = {
-                "report_uuid": "downtime ends after range - downtime is entire date range",
+                "report_uuid": "DOWNTIME ENDS AFTER RANGE - downtime is entire date range",
                 "vehicle_uuid": first_report_in_range["vehicle_uuid"],
                 "vehicle_name": first_report_in_range["vehicle_name"],
                 "created_at": range_end_converted,
                 "is_serviceable": True
             }
 
-            filtered_reports_for_calc = new_downtime_start_report + reports_in_range.append(new_downtime_end_report)
+            filtered_reports_for_calc = [new_downtime_start_report] + reports_in_range + [new_downtime_end_report]
 
         elif downtime_starts_before_date_range_and_ends_within_date_range:
             print("downtime_starts_before_date_range_and_ends_within_date_range", downtime_starts_before_date_range_and_ends_within_date_range)
             new_downtime_start_report = {
-                "report_uuid": "downtime starts before range",
+                "report_uuid": "DOWNTIME STARTS BEFORE RANGE",
                 "vehicle_uuid": first_report_in_range["vehicle_uuid"],
                 "vehicle_name": first_report_in_range["vehicle_name"],
                 "created_at": range_start_converted,
@@ -325,7 +326,7 @@ def filter_reports_in_range(reports, range_start, range_end):
             filtered_reports_for_calc = new_downtime_start_report + reports_in_range
 
         elif downtime_starts_and_ends_within_date_range:
-            print("downtime_starts_and_ends_within_date_range", downtime_starts_and_ends_within_date_range)
+            print("downtime_starts_and_ends_within_date_range - no adjustments", downtime_starts_and_ends_within_date_range)
             
             filtered_reports_for_calc = reports_in_range
 
@@ -337,3 +338,21 @@ reports_for_calc = filter_reports_in_range(reports, range_start, range_end)
 print("reports_for_calc =",reports_for_calc)
 
 
+def filter_report_data(reports):
+    filtered_reports = []
+
+    for report in reports:
+        filtered_report = {
+            'report_uuid': report.get('report_uuid'),
+            'vehicle_uuid': report.get('vehicle_uuid'),
+            'vehicle_name': report.get('vehicle_name'),
+            'created_at': report.get('created_at'),
+            'is_serviceable': report.get('is_serviceable'),
+        }
+        filtered_reports.append(filtered_report)
+
+    return filtered_reports
+
+filtered_reports_for_calc = filter_report_data(reports_for_calc)
+
+print("filtered_reports_for_calc", filtered_reports_for_calc)
