@@ -79,29 +79,99 @@ reports = [
 range_start = datetime.strptime("2023-01-28", '%Y-%m-%d')
 range_end = datetime.strptime("2023-03-03", '%Y-%m-%d') 
 
+def _downtime_report_render_get(request, vehicle_uuid):
+    if not is_authorized(request, None, [['report.r', 'report.w']]):
+        return HttpResponseForbidden('not authorized')
 
-def report_calcs(filtered_reports_for_calc):
+    context = Context()
+    context._airport_id = str(request.airport.id)
+
+    vehicle = None
+    try:
+        vehicle_uuid = uuid.UUID(vehicle_uuid)
+        vehicle = models.Vehicle.objects.select_related('subarea').get(
+            uuid=vehicle_uuid, airport_id=request.airport.id)
+    except models.Vehicle.DoesNotExist:
+        return HttpResponseNotFound('vehicle not found')
+
+    output_type = request.GET.get('outputtype', None)
+    if output_type is None:
+        return HttpResponseBadRequest('\'outputyype\' missing')
+
+    range_start = request.GET.get('startdate')
+    if range_start is None:
+        return HttpResponseBadRequest('\'startdate\' missing')
     
-    vehicle_name = "A1"
-    vehicle_asset_number = "fdjkh-37h"
-    filtered_reports_for_calc.sort(key=lambda x: x["created_at"])
-    vehicle_downtime_report = []
+    range_start += ' 00:00:00'
+
+    range_end = request.GET.get('enddate')
+    if range_end is None:
+        return HttpResponseBadRequest('\'enddate\' missing')
+    else:
+        current_time_UTC = datetime.now(timezone.utc).strftime("%H:%M:%S")
+        range_end += ' ' + current_time_UTC 
+
+    reports_for_date_range_search = []
+    vehicle_name = ''
+    vehicle_asset_number = ''
+
+    if vehicle_uuid:
+        vehicle = models.Vehicle.objects.get(uuid=vehicle_uuid)
+
+        vehicle_name = vehicle.identifier
+        vehicle_asset_number = vehicle.asset_number
+
+        vehicle_reports = models.Report.objects.filter(vehicle_id=vehicle_uuid) #TODO investigate created_at__lt=range_start
+        
+        for report in vehicle_reports:
+            filtered_reports = filter_report_data([report])
+
+            if filtered_reports:
+                reports_for_date_range_search.extend(filtered_reports)
+
+            else:
+                content = "Warning: No reports for that vehicle UUID"
+                return HttpResponseServerError(content)
+
+        reports_for_downtime_calc = filter_reports_in_range(reports_for_date_range_search, range_start, range_end, vehicle_uuid, vehicle_name, vehicle_asset_number)
+
+        if reports_for_downtime_calc:
+            content = "setup = ", reports_for_downtime_calc[3], "prev_report = ", reports_for_downtime_calc[0], ", reports_in_range =", reports_for_downtime_calc[1], ", filtered_reports_for_calc =", reports_for_downtime_calc[2]
+
+        else:
+            content = "No reports in range"
+            return HttpResponseServerError(content)
+        
+
+        if not reports_for_downtime_calc:
+            content = "Warning: No reports in range"
+            return HttpResponseServerError(content)
+
+    else:
+        content = "Warning: No vehicle UUID provided"
+        return HttpResponseServerError(content)
+
+    reports_for_downtime_calc.sort(key=lambda x: x["created_at"])   
+
     downtime_reports = []
+    
     total_downtime = timedelta()
+
     ignore_next_false = False
 
-    for entry in filtered_reports_for_calc:
+    for entry in reports_for_downtime_calc:
         if ignore_next_false:
             if entry["is_serviceable"] is True or entry["is_serviceable"] is None:
                 ignore_next_false = False
             continue
 
         if entry["is_serviceable"] is False:
-            downtime_start = entry["created_at"]
+            downtime_start = datetime.strptime(entry["created_at"], "%Y-%m-%d %H:%M:%S")
+            downtime_start_str = downtime_start.strftime("%Y-%m-%d %H:%M:%S")
             starting_report = entry["report_uuid"]
             downtime_end = None
 
-            for sub_entry in filtered_reports_for_calc[filtered_reports_for_calc.index(entry):]:
+            for sub_entry in reports_for_downtime_calc[reports_for_downtime_calc.index(entry):]:
                 if sub_entry["is_serviceable"] is True or sub_entry["is_serviceable"] is None:
                     downtime_end = sub_entry["created_at"]
                     ending_report = sub_entry["report_uuid"]
@@ -114,13 +184,14 @@ def report_calcs(filtered_reports_for_calc):
             if downtime_end is not None and downtime_start is not None:
                 try:
                     calc_end = datetime.strptime(downtime_end, "%Y-%m-%d %H:%M:%S")
-                    calc_start = datetime.strptime(downtime_start, "%Y-%m-%d %H:%M:%S")
+                    calc_start = datetime.strptime(downtime_start_str, "%Y-%m-%d %H:%M:%S")
                     total_hrs = calc_end - calc_start
 
                     total_downtime += total_hrs
 
                 except ValueError:
                     content = "Error: Failed to convert date/time string"
+                    return HttpResponseServerError(content)
 
             downtime_reports.append({
                 "starting_report": starting_report,
@@ -131,32 +202,26 @@ def report_calcs(filtered_reports_for_calc):
             })
 
             ignore_next_false = True
-    
+
     vehicle_downtime_report = []
 
     if downtime_reports:
         vehicle_downtime_report.append({
+            'airport_id':context._airport_id,
             'vehicle_name': vehicle_name,
             'vehicle_asset_number': vehicle_asset_number,
             'downtime_reports': downtime_reports,
             'total_downtime': round(total_downtime.total_seconds() / 3600, 2)
         })
+        
     else:
         content = "Warning: no reports available"
+        return HttpResponseServerError(content)
 
-
-    # else:
-    #     vehicle_downtime_report.append({
-    #         'vehicle_name': vehicle_name,
-    #         'vehicle_asset_number': vehicle_asset_number,
-    #         'downtime_reports': None,
-    #         'total_downtime': None
-    #     })
-
-    if len(downtime_reports) > 0:
-        vehicle_downtime_report.append({
-            'vehicle_name': vehicle_name,
-            'vehicle_asset_number': vehicle_asset_number,
-            'downtime_reports': downtime_reports,
-            'total_downtime': round(total_downtime.total_seconds() / 3600, 2)
-        })
+        # vehicle_downtime_report.append({
+        #     'airport_id':context._airport_id,
+        #     'vehicle_name': vehicle_name,
+        #     'vehicle_asset_number': vehicle_asset_number,
+        #     'downtime_reports': "No downtime to report",
+        #     'total_downtime': round(total_downtime.total_seconds() / 3600, 2)
+        # })
